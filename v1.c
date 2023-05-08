@@ -3,84 +3,105 @@
 #include <string.h>
 
 typedef struct{
-    char nome[100];
-}Pessoa;
+    char nome[50];
+} Livros;
 
-typedef struct no{
-    Pessoa p;
-    struct no *proximo;
-}No;
+typedef struct {
+    int topo;
+    Livros livro[5];
+} Prateleira;
 
-Pessoa ler_pessoa(char nome[100]){
-    Pessoa p;
-    strcpy(p.nome, nome);
-    return p;
-}
+typedef struct {
+    int topo;
+    Prateleira prateleiras[6];
+} Estante;
 
-void imprimir_pessoa(Pessoa p){
-    printf("Livros: %s | ", p.nome);
-}
-
-// função para a operação push (empilhar)
-No* empilhar(No *topo, char nome[100]){
-    No *novo = malloc(sizeof(No));
-
-    if(novo){
-        novo->p = ler_pessoa(nome);
-        novo->proximo = topo;
-        return novo;
+void push(Estante* estante, Livros livro) {
+    if (estante->topo == -1 || estante->prateleiras[estante->topo].topo == 5) {
+        estante->topo++;
+        estante->prateleiras[estante->topo].topo = -1;
     }
-    else
-        printf("\nErro ao alocar memoria...\n");
-    return NULL;
-}
-// função para a operação pop (desempilhar)
-No* desempilhar(No **topo){
-    if(*topo != NULL){
-        No *remover = *topo;
-        *topo = remover->proximo;
-        return remover;
-    }
-    else
-        printf("\nPilha vazia!\n");
-    return NULL;
+
+    Prateleira* prateleira_atual = &(estante->prateleiras[estante->topo]);
+    prateleira_atual->topo++;
+    strcpy(prateleira_atual->livro[prateleira_atual->topo].nome, livro.nome);
 }
 
-void imprimir_pilha(No *topo){
-    printf("\n----------- Prateleira --------------\n");
-    while(topo){
-        imprimir_pessoa(topo->p);
-        topo = topo->proximo;
+
+Livros* pop(Estante* estante) {
+    if (estante->topo == -1 || estante->prateleiras[estante->topo].topo == -1) {
+        return NULL;
     }
-    printf("\n--------- Fim prateleira ------------\n");
+
+    Prateleira* prateleira_atual = &(estante->prateleiras[estante->topo]);
+    Livros* livro = &(prateleira_atual->livro[prateleira_atual->topo]);
+    prateleira_atual->topo--;
+
+    if (prateleira_atual->topo == -1) {
+        estante->topo--;
+    }
+
+    return livro;
 }
 
 int main() {
-    int qtd_estantes, qtd_pratileira = 6;
-    No *remover, *topo = NULL;
+    Estante estante;
+    estante.topo = -1;
 
-    
+    char entrada[1500] = "/O poder do Habito,Boa noite PunPun,A revolucao dos bixos,Harry Potter,Senhor dos aneis,oxe\\/Berserk,One Piece,Calculo1,calulo2,geometria analitica\\";
+    //printf("Digite a entrada: ");
+    //fgets(entrada, 200, stdin);
 
-    for (int i = 0; i < qtd_estantes; i++)
-    {
-       char input[100], aux[256];
-       fgets(input, 100, stdin);
-       
-       for (size_t i = 0; i < strlen(input); i++)
-        {
-        if(input[i] == '/')
-            {
-                while(input[i] != '\\'){
-                    aux[i] = input[i];
-                    i++;
-                }   
-                aux[0] = '|';
-                aux[strlen(aux)] = '\0';
-                topo = empilhar(topo, aux);
-            }
+    Livros livro;
+    int i = 0;
+    int j = 0;
+    while (entrada[i] != '\0') {
+        if (entrada[i] == '/') {
+            estante.topo++;
+            estante.prateleiras[estante.topo].topo = -1;
+            i++;
+            j = 0;
+        } else if (entrada[i] == '\\') {
+            i++;
+        } else if (entrada[i] == ',') {
+            livro.nome[j] = '\0';
+            push(&estante, livro);
+            i++;
+            j = 0;
+        } else {
+            livro.nome[j] = entrada[i];
+            i++;
+            j++;
+        }
+    }
+    livro.nome[j] = '\0';
+    push(&estante, livro);
+
+    for (int i = 0; i <= estante.topo; i++) {
+        printf("Prateleira %d:\n", i+1);
+        Prateleira prateleira = estante.prateleiras[i];
+        for (int j = 0; j <= prateleira.topo; j++) {
+            Livros livro = prateleira.livro[j];
+            printf("- %s\n", livro.nome);
+        }
+    }
+    printf("\n\n");
+    Livros* livro_removido = pop(&estante);
+    if (livro_removido != NULL) {
+        printf("%s\n", livro_removido->nome);
+    }
+    printf("\n\n");
+
+    for (int i = 0; i <= estante.topo; i++) {
+        printf("Prateleira %d:\n", i+1);
+        Prateleira prateleira = estante.prateleiras[i];
+        for (int j = 0; j <= prateleira.topo; j++) {
+            Livros livro = prateleira.livro[j];
+            printf("- %s\n", livro.nome);
         }
     }
 
-    
     return 0;
+
 }
+   
